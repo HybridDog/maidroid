@@ -3,6 +3,10 @@
 -- https://github.com/tacigar/maidroid
 ------------------------------------------------------------
 
+if not pdisc then
+	return -- no pdisc mod ;¬{
+end
+
 local maidroid_instruction_set = {
 	getpos = function(_, thread)
 		local pos = thread.droid.object:getpos()
@@ -46,7 +50,7 @@ add pi,pi; this is not read only
 loop_start:
 	get_us_time beep; var and cmd name can both be same
 	beep
-	sleep 0.5
+	usleep 500000
 
 	getyaw yaw
 	add yaw,yaw_rot; rotate the droid a bit
@@ -58,8 +62,8 @@ loop_start:
 	add timediff,beep
 
 	neg timediff
-	add timediff,1
-	sleep timediff; should continue 1s after previous beep
+	add timediff,1000000
+	usleep timediff; should continue 1s after previous beep
 jmp loop_start
 ]]
 
