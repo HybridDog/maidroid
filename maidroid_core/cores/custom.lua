@@ -42,7 +42,8 @@ local function mylog(log)
 end
 
 -- the program should come from default written book into disk
-local parsed_code = pdisc.parse[[
+-- if it's not present for any reason, following program is used in lieu:
+local dummycode = [[
 mov yaw_rot,pi
 mul yaw_rot,0.6
 add pi,pi; this is not read only
@@ -67,7 +68,8 @@ loop_start:
 jmp loop_start
 ]]
 
-local function on_start(self)
+local function on_start(self, metastring)
+	local parsed_code = pdisc.parse(metastring or dummycode)
 --~ print"start"
 	self.object:setacceleration{x = 0, y = -10, z = 0}
 	self.object:setvelocity{x = 0, y = 0, z = 0}
@@ -92,9 +94,13 @@ local function on_step(self)
 end
 
 local function on_resume(self)
-self.object:remove()
+--~ self.object:remove()
 --~ print"resume"
 	self.thread:continue()
+end
+
+local function on_pause(self)
+	self.thread:flush()
 end
 
 local function on_stop(self)
@@ -111,6 +117,6 @@ maidroid.register_core("maidroid_core:custom", {
 	on_start         = on_start,
 	on_stop          = on_stop,
 	on_resume        = on_resume,
-	on_pause         = on_stop,
+	on_pause         = on_pause,
 	on_step          = on_step,
 })

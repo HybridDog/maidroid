@@ -365,7 +365,7 @@ function maidroid.register_maidroid(product_name, def)
 				if listname == "core" then
 					local core_name = stack:get_name()
 					local core = maidroid.registered_cores[core_name]
-					core.on_start(self)
+					core.on_start(self, stack:get_metadata())
 					self.core_name = core_name
 
 					update_infotext(self)

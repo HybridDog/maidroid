@@ -58,7 +58,17 @@ function maidroid_tool.register_writer(nodename, options)
 				meta:set_float("time", -1)
 				meta:set_string("output", "")
 				meta:set_string("formspec", formspec.inactive)
-				inventory:set_stack("main", 1, ItemStack(output))
+				local resultitem = ItemStack(output)
+
+				if output == "maidroid_core:custom" then
+					--~ assert(pdisc)
+					--~ resultitem:set_metadata(minetest.serialize(
+						--~ pdisc.parse(meta:get_string"pdisc_source")
+					--~ ))
+					resultitem:set_metadata(meta:get_string"pdisc_source")
+					meta:set_string("pdisc_source", "print $dummy program")
+				end
+				inventory:set_stack("main", 1, resultitem)
 
 				swap_node(pos, nodename)
 
@@ -69,7 +79,9 @@ function maidroid_tool.register_writer(nodename, options)
 		else
 			local main_name = main_list[1]:get_name()
 
-			if main_name == empty_itemname and (not fuel_list[1]:is_empty()) and (not dye_list[1]:is_empty()) then
+			if main_name == empty_itemname
+			and not fuel_list[1]:is_empty()
+			and not dye_list[1]:is_empty() then
 				local output = dye_item_map[dye_list[1]:get_name()]
 
 				meta:set_string("time", 0)
@@ -80,8 +92,16 @@ function maidroid_tool.register_writer(nodename, options)
 				inventory:set_stack("fuel", 1, fuel_stack)
 
 				local dye_stack = dye_list[1]
-				dye_stack:take_item()
-				inventory:set_stack("dye", 1, dye_stack)
+				if output == "maidroid_core:custom" then
+					local data = minetest.deserialize(dye_stack:get_metadata())
+					if data
+					and data.text then
+						meta:set_string("pdisc_source", data.text)
+					end
+				else
+					dye_stack:take_item()
+					inventory:set_stack("dye", 1, dye_stack)
+				end
 
 				swap_node(pos, nodename .. "_active")
 
