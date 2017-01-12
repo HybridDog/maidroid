@@ -3,13 +3,19 @@
 -- https://github.com/tacigar/maidroid
 ------------------------------------------------------------
 
+local function usleep(t, thread)
+	if not pdisc.standard_befehlssatz.usleep({t}, thread) then
+		error"Problem with pdisc instruction set."
+	end
+end
+
 local function pos_from_varname(name, vars)
 	if type(name) ~= "string" then
 		return false, "string expected"
 	end
 	local cs = {"x", "y", "z"}
 	local pos = {}
-	for i = 1,cs do
+	for i = 1,#cs do
 		i = cs[i]
 		local v = tonumber(vars[name .. "." .. i])
 		if not v then
@@ -120,6 +126,7 @@ local maidroid_instruction_set = {
 			groups,
 			ItemStack{name=":"}:get_tool_capabilities()
 		)
+		dp_pool[1].range = minetest.registered_items[""].range or 14
 		-- currently 0 possible tools
 		--~ dp_pool[2] = minetest.get_dig_params(
 			--~ groups,
@@ -131,9 +138,10 @@ local maidroid_instruction_set = {
 			-- get_dig_params is undocumented @ wiki,but it works.
 			-- time:float, diggable:boolean
 			if v.diggable then
-				if (not dp_result
-				or dp_result.time > v.time)
-				and v.range <= dist then
+				if dist <= v.range
+				and (not dp_result
+					or dp_result.time > v.time
+				) then
 					dp_result = v
 					used_tool = i ~= 1
 				end
@@ -147,18 +155,27 @@ local maidroid_instruction_set = {
 		def.on_dig(pos, node, obj)
 		--The block not being air is considered "failure".
 		--HOWEVER,since the dig itself was a success,it takes time.
-		if minetest.get_node(pos2).name ~= "air" then
+		if minetest.get_node(pos).name ~= "air" then
 			return true, false, "no air after digging"
 		end
+
+		-- adjust toolwear
+		--~ if used_tool then
+		--~ end
 
 		-- play sound
 		local sound = def.sounds and def.sounds.dug
 		if sound then
 			minetest.sound_play(sound.name, {pos=pos, gain=sound.gain})
 		end
-		--~ sleep here
 
-		return true, true, dp_result
+		-- wait the digging time
+		usleep(dp_result.time * 1000000, thread)
+
+		-- TODO: it sleeps not long enough (not sure) and the items aren't added
+		-- to the maidroid inventory (needs fakeplayer(droid) fix)
+
+		return true, true, dp_result.time
 	end,
 
 	beep = function(_, thread)
