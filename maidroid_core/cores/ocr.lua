@@ -3,6 +3,23 @@
 -- https://github.com/tacigar/maidroid
 ------------------------------------------------------------
 
+local function pos_from_varname(name, vars)
+	if type(name) ~= "string" then
+		return false, "string expected"
+	end
+	local cs = {"x", "y", "z"}
+	local pos = {}
+	for i = 1,cs do
+		i = cs[i]
+		local v = tonumber(vars[name .. "." .. i])
+		if not v then
+			return false, "coordinate " .. i .. " not found"
+		end
+		pos[i] = v
+	end
+	return pos
+end
+
 local maidroid_instruction_set = {
 	-- popular (similars in lua_api) information gathering functions
 	getpos = function(_, thread)
@@ -74,6 +91,74 @@ local maidroid_instruction_set = {
 		droid.vel.y = math.sqrt(-2 * h * droid.object:getacceleration().y)
 		droid.object:setvelocity(droid.vel)
 		return true, true
+	end,
+
+	dig = function(params, thread)
+		-- get position
+		local pos, msg = pos_from_varname(params[1], thread.vars)
+		if not pos then
+			return false, msg
+		end
+
+		-- test if the node there can be dug
+		local node = minetest.get_node(pos)
+		local def = minetest.registered_nodes[node.name]
+		if not def
+		or not def.diggable
+		or not def.pointable then
+			return true, false, "node not diggable"
+		end
+
+		-- test tool params (Code from simple_robots)
+		local obj = thread.droid.object
+		local mp = obj:getpos()
+		local dist = vector.distance(mp, pos)
+		local dp_result
+		local groups = ItemStack(node):get_definition().groups
+		local dp_pool = {}
+		dp_pool[1] = minetest.get_dig_params(
+			groups,
+			ItemStack{name=":"}:get_tool_capabilities()
+		)
+		-- currently 0 possible tools
+		--~ dp_pool[2] = minetest.get_dig_params(
+			--~ groups,
+			--~ wielded:get_tool_capabilities()
+		--~ )
+		local used_tool
+		for i = 1,#dp_pool do
+			local v = dp_pool[i]
+			-- get_dig_params is undocumented @ wiki,but it works.
+			-- time:float, diggable:boolean
+			if v.diggable then
+				if (not dp_result
+				or dp_result.time > v.time)
+				and v.range <= dist then
+					dp_result = v
+					used_tool = i ~= 1
+				end
+			end
+		end
+		if not dp_result then
+			return true, false, "insufficient tool capabilities"
+		end
+
+		-- dig node
+		def.on_dig(pos, node, obj)
+		--The block not being air is considered "failure".
+		--HOWEVER,since the dig itself was a success,it takes time.
+		if minetest.get_node(pos2).name ~= "air" then
+			return true, false, "no air after digging"
+		end
+
+		-- play sound
+		local sound = def.sounds and def.sounds.dug
+		if sound then
+			minetest.sound_play(sound.name, {pos=pos, gain=sound.gain})
+		end
+		--~ sleep here
+
+		return true, true, dp_result
 	end,
 
 	beep = function(_, thread)
