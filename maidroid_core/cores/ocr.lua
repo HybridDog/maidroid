@@ -26,21 +26,30 @@ local function pos_from_varname(name, vars)
 	return pos
 end
 
+local function table_tovars(name, t, vars)
+	if type(name) ~= "string" then
+		return false, "string expected"
+	end
+	for i,v in pairs(t) do
+		vars[name .. "." .. i] = v
+	end
+	return true
+end
+
 local maidroid_instruction_set = {
 	-- popular (similars in lua_api) information gathering functions
-	getpos = function(_, thread)
-		local pos = thread.droid.object:getpos()
-		return true, {pos.x, pos.y, pos.z}
+	getpos = function(params, thread)
+		return table_tovars(params[1], thread.droid.object:getpos(),
+			thread.vars)
 	end,
 
-	getvelocity = function()
-		local vel = self.vel
-		return true, {vel.x, vel.y, vel.z}
+	getvelocity = function(params, thread)
+		return table_tovars(params[1], self.vel, thread.vars)
 	end,
 
 	getacceleration = function(_, thread)
-		local acc = thread.droid.object:getacceleration()
-		return true, {acc.x, acc.y, acc.z}
+		return table_tovars(params[1], thread.droid.object:getacceleration(),
+			thread.vars)
 	end,
 
 	getyaw = function(_, thread)
@@ -97,6 +106,18 @@ local maidroid_instruction_set = {
 		droid.vel.y = math.sqrt(-2 * h * droid.object:getacceleration().y)
 		droid.object:setvelocity(droid.vel)
 		return true, true
+	end,
+
+	setwalk = function(params, thread)
+		local speed = tonumber(params[1]) or 0
+		speed = math.max(-.5, math.min(5, speed))
+		local obj = thread.droid.object
+		local yaw = obj:getyaw()
+		local vel = self.vel
+		vel.z = math.cos(yaw) * speed
+		vel.x = -math.sin(yaw) * speed
+		obj:setvelocity(vel)
+		return true
 	end,
 
 	dig = function(params, thread)
