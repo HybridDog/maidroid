@@ -47,7 +47,7 @@ local maidroid_instruction_set = {
 		return table_tovars(params[1], self.vel, thread.vars)
 	end,
 
-	getacceleration = function(_, thread)
+	getacceleration = function(params, thread)
 		return table_tovars(params[1], thread.droid.object:getacceleration(),
 			thread.vars)
 	end,
@@ -57,6 +57,21 @@ local maidroid_instruction_set = {
 	end,
 
 	-- other info functions
+	get_node = function(params, thread)
+		-- get position
+		local pos, msg = pos_from_varname(params[1], thread.vars)
+		if not pos then
+			return false, msg
+		end
+
+		local range = minetest.registered_items[""].range or 14
+		local mp = thread.droid.object:getpos()
+		if vector.distance(pos, mp) > range then
+			return false, "node too far away"
+		end
+
+		return table_tovars(params[1], minetest.get_node(pos), thread.vars)
+	end,
 
 	-- popular actions for changing sth
 	setyaw = function(params, thread)
@@ -113,7 +128,7 @@ local maidroid_instruction_set = {
 		speed = math.max(-.5, math.min(5, speed))
 		local obj = thread.droid.object
 		local yaw = obj:getyaw()
-		local vel = self.vel
+		local vel = thread.droid.vel
 		vel.z = math.cos(yaw) * speed
 		vel.x = -math.sin(yaw) * speed
 		obj:setvelocity(vel)
@@ -153,7 +168,7 @@ local maidroid_instruction_set = {
 			--~ groups,
 			--~ wielded:get_tool_capabilities()
 		--~ )
-		local used_tool
+		--~ local used_tool
 		for i = 1,#dp_pool do
 			local v = dp_pool[i]
 			-- get_dig_params is undocumented @ wiki,but it works.
@@ -164,7 +179,7 @@ local maidroid_instruction_set = {
 					or dp_result.time > v.time
 				) then
 					dp_result = v
-					used_tool = i ~= 1
+					--~ used_tool = i ~= 1
 				end
 			end
 		end
@@ -256,10 +271,18 @@ local function on_step(self)
 	if not thread.stopped then
 		return
 	end
-	self.vel_prev = self.vel
-	self.vel = self.object:getvelocity()
 
-	thread:try_rebirth()
+	-- allow at max 1 ms executing
+	local t_end = minetest.get_us_time() + 1000
+	while minetest.get_us_time() < t_end do
+		self.vel_prev = self.vel
+		self.vel = self.object:getvelocity()
+
+		if not thread:try_rebirth() -- ← sleeping
+		or not thread.stopped then -- ← aborted
+			return
+		end
+	end
 end
 
 local function on_resume(self)
