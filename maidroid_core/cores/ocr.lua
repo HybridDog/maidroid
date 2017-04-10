@@ -213,7 +213,13 @@ local maidroid_instruction_set = {
 			groups,
 			wielded:get_tool_capabilities()
 		)
+		dp_pool[2].range = minetest.registered_items[wielded:get_name()].range
+			or 14
 		local used_tool
+		for i = 1,#dp_pool do
+			-- fix, see game.cpp:3888
+			dp_pool[i].time = math.max(dp_pool[i].time, 0.15)
+		end
 		for i = 1,#dp_pool do
 			local v = dp_pool[i]
 			-- get_dig_params is undocumented @ wiki,but it works.
@@ -224,7 +230,7 @@ local maidroid_instruction_set = {
 					or dp_result.time > v.time
 				) then
 					dp_result = v
-					used_tool = i ~= 1
+					used_tool = i > 1 and i
 				end
 			end
 		end
@@ -240,10 +246,11 @@ local maidroid_instruction_set = {
 			return true, false, "no air after digging"
 		end
 
-		-- adjust toolwear
-		--~ if used_tool then
-			--~ obj:set_wielded_item()
-		--~ end
+		-- adjust toolwear, needs testing
+		if used_tool then
+			wielded:add_wear(dp_pool[used_tool].wear)
+			obj:set_wielded_item(wielded)
+		end
 
 		-- play sound
 		local sound = def.sounds and def.sounds.dug
@@ -256,8 +263,9 @@ local maidroid_instruction_set = {
 		usleep(dp_result.time * 1000000, thread)
 		update_animation(thread.droid)
 
-		-- TODO: it sleeps not long enough (not sure) and the items aren't added
-		-- to the maidroid inventory (needs fakeplayer(droid) fix)
+		-- TODO:
+		-- the items aren't added to the maidroid inventory
+			-- (needs fakeplayer(droid) fix)
 
 		return true, true, dp_result.time
 	end,
