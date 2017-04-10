@@ -6,11 +6,14 @@ local instr = {
 	{"getacceleration", "<s accname>", "Gets the maidroid's acceleration."},
 	{"getyaw", "<v yaw>", "Gets the maidroid's yaw."},
 
+	{"get_node", "<s posname>", 'Gets the node at posname, name, param2 etc. are stored in vars[posname .. ".name" etc.]. The maximum range depends on the tool.'},
+	{"get_item_group", "<vs name>, <s group>", "Sets name to the minetest.get_item_group(name, group)."},
 
 	{"setyaw", "<n yaw>", "Sets the maidroid's yaw in radians."},
 
 	{"setwalk", "[<n speed>]", "Starts walking n m/s to the current direction. If speed is omitted, the maidroid stops. maximum speed: 5"},
-	{"dig", "<s posname>[, <v errormsg>]", "Digs a node, if posname is a variable, it is set to a bool indicating whether the dig succeeded. If false, errormsg tells the reason."},
+	{"dig", "<s posname>[, <v errormsg>]", "Digs a node, if posname is a variable, it is set to a bool indicating whether digging succeeded. If false, errormsg tells the reason."},
+	{"place", "<s posname>[, <v errormsg>]", "Places a node, if posname is a variable, it is set to a bool indicating whether placing succeeded. If false, errormsg tells the reason."},
 	{"jump", "[<n heigth>]", "Makes the droid jump, if height is invalid (height ∈ ]0,2]), it's set to 1, if it's a variable, it's set to a bool indicating whether the jump succeeded."},
 	{"beep", "", "Execute this every second while the droid walks backwards, pls."},
 }
