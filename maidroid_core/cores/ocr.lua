@@ -36,6 +36,39 @@ local function table_tovars(name, t, vars)
 	return true
 end
 
+local function update_animation(droid, ani)
+	if not ani then
+		droid.object:set_animation(maidroid.animation_frames[ani])
+		return
+	end
+	if droid.vel.x == 0
+	and droid.vel.z == 0 then
+		droid.object:set_animation(maidroid.animation_frames.STAND)
+	else
+		droid.object:set_animation(maidroid.animation_frames.WALK)
+	end
+end
+
+-- used for the place instruction
+local under_offsets = {
+	{0,-1,0},
+	{0,0,-1}, {-1,0,0}, {1,0,0}, {0,0,1},
+	{0,1,0}
+}
+local function get_pt_under(pos)
+	for i = 1,#under_offsets do
+		local o = under_offsets[i]
+		local p = {x = pos.x + o[1], y = pos.y + o[2], z = pos.z + o[3]}
+
+		local node = minetest.get_node(p)
+		local def = minetest.registered_nodes(node.name)
+		if def
+		and def.pointable then
+			return p
+		end
+	end
+end
+
 local maidroid_instruction_set = {
 	-- popular (similars in lua_api) information gathering functions
 	getpos = function(params, thread)
@@ -44,7 +77,7 @@ local maidroid_instruction_set = {
 	end,
 
 	getvelocity = function(params, thread)
-		return table_tovars(params[1], self.vel, thread.vars)
+		return table_tovars(params[1], thread.droid.vel, thread.vars)
 	end,
 
 	getacceleration = function(params, thread)
@@ -71,6 +104,16 @@ local maidroid_instruction_set = {
 		end
 
 		return table_tovars(params[1], minetest.get_node(pos), thread.vars)
+	end,
+
+	get_item_group = function(params)
+		local name = params[1]
+		local group = params[2]
+		if type(name) ~= "string"
+		or type(group) ~= "string" then
+			return false, "two strings expected"
+		end
+		return true, minetest.get_item_group(name, group)
 	end,
 
 	-- popular actions for changing sth
@@ -132,6 +175,7 @@ local maidroid_instruction_set = {
 		vel.z = math.cos(yaw) * speed
 		vel.x = -math.sin(yaw) * speed
 		obj:setvelocity(vel)
+		update_animation(thread.droid)
 		return true
 	end,
 
@@ -163,12 +207,13 @@ local maidroid_instruction_set = {
 			ItemStack{name=":"}:get_tool_capabilities()
 		)
 		dp_pool[1].range = minetest.registered_items[""].range or 14
-		-- currently 0 possible tools
-		--~ dp_pool[2] = minetest.get_dig_params(
-			--~ groups,
-			--~ wielded:get_tool_capabilities()
-		--~ )
-		--~ local used_tool
+		-- currently 1 possible tool
+		local wielded = obj:get_wielded_item()
+		dp_pool[2] = minetest.get_dig_params(
+			groups,
+			wielded:get_tool_capabilities()
+		)
+		local used_tool
 		for i = 1,#dp_pool do
 			local v = dp_pool[i]
 			-- get_dig_params is undocumented @ wiki,but it works.
@@ -179,7 +224,7 @@ local maidroid_instruction_set = {
 					or dp_result.time > v.time
 				) then
 					dp_result = v
-					--~ used_tool = i ~= 1
+					used_tool = i ~= 1
 				end
 			end
 		end
@@ -197,6 +242,7 @@ local maidroid_instruction_set = {
 
 		-- adjust toolwear
 		--~ if used_tool then
+			--~ obj:set_wielded_item()
 		--~ end
 
 		-- play sound
@@ -205,13 +251,62 @@ local maidroid_instruction_set = {
 			minetest.sound_play(sound.name, {pos=pos, gain=sound.gain})
 		end
 
-		-- wait the digging time
+		-- wait the digging time while showing the MINE animation
+		update_animation(thread.droid, "MINE")
 		usleep(dp_result.time * 1000000, thread)
+		update_animation(thread.droid)
 
 		-- TODO: it sleeps not long enough (not sure) and the items aren't added
 		-- to the maidroid inventory (needs fakeplayer(droid) fix)
 
 		return true, true, dp_result.time
+	end,
+
+	place = function(params, thread)
+		-- get pt.above
+		local pos, msg = pos_from_varname(params[1], thread.vars)
+		if not pos then
+			return false, msg
+		end
+
+		-- test if the node there can be pointed
+		local node = minetest.get_node(pos)
+		local def = minetest.registered_nodes[node.name]
+		if not def
+		or not def.buildable_to then
+			return true, false, "node not buildable_to"
+		end
+
+		-- get wield item
+		local obj = thread.droid.object
+		local stack = obj:get_wielded_item()
+		if stack:is_empty() then
+			return true, false, "missing item"
+		end
+
+		-- get pt.under
+		local under = get_pt_under(pos)
+		if not under then
+			return true, false, "no node to place onto found"
+		end
+
+		-- place it
+		local pt = {
+			above = pos,
+			under = under,
+			type = "node"
+		}
+		local newitem, succ = stack:get_definition().on_place(stack, obj, pt)
+		if not succ then
+			return true, false, "could not place"
+		end
+
+		-- set new item
+		if newitem then
+			obj:get_wielded_item(newitem)
+		end
+
+		return true, true
 	end,
 
 	beep = function(_, thread)
