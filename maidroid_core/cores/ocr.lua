@@ -222,8 +222,6 @@ local maidroid_instruction_set = {
 		end
 		for i = 1,#dp_pool do
 			local v = dp_pool[i]
-			-- get_dig_params is undocumented @ wiki,but it works.
-			-- time:float, diggable:boolean
 			if v.diggable then
 				if dist <= v.range
 				and (not dp_result
@@ -241,7 +239,6 @@ local maidroid_instruction_set = {
 		-- dig node
 		def.on_dig(pos, node, obj)
 		--The block not being air is considered "failure".
-		--HOWEVER,since the dig itself was a success,it takes time.
 		if minetest.get_node(pos).name ~= "air" then
 			return true, false, "no air after digging"
 		end
