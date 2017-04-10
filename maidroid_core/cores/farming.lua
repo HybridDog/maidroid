@@ -76,7 +76,7 @@ walk_randomly = function(self, dtime)
 		self.time_counters[1] = 0
 		self.time_counters[2] = self.time_counters[2] + 1
 
-		local wield_stack = self:get_wield_item_stack()
+		local wield_stack = self:get_wielded_item()
 		if minetest.get_item_group(wield_stack:get_name(), "seed") > 0
 		or self:has_item_in_main(function(itemname)	return (minetest.get_item_group(itemname, "seed") > 0) end) then
 			local destination = _aux.search_surrounding(self.object:getpos(), is_plantable_place, searching_range)
@@ -154,7 +154,7 @@ to_walk_to_mow = function(self, path, destination)
 end
 
 to_plant = function(self)
-	local wield_stack = self:get_wield_item_stack()
+	local wield_stack = self:get_wielded_item()
 	if minetest.get_item_group(wield_stack:get_name(), "seed") > 0
 	or self:move_main_to_wield(function(itemname)	return (minetest.get_item_group(itemname, "seed") > 0) end) then
 		self.state = state.PLANT
@@ -239,7 +239,7 @@ end
 plant = function(self, dtime)
 	if self.time_counters[1] >= 15 then
 		if is_plantable_place(self.destination) then
-			local stack = self:get_wield_item_stack()
+			local stack = self:get_wielded_item()
 			local itemname = stack:get_name()
 
 			local pointed_thing = {
@@ -250,7 +250,7 @@ plant = function(self, dtime)
 			farming.place_seed(stack, minetest.get_player_by_name(self.owner_name), pointed_thing, stack:get_name())
 
 			stack:take_item(1)
-			self:set_wield_item_stack(stack)
+			self:set_wielded_item(stack)
 		end
 		to_walk_randomly(self)
 		return

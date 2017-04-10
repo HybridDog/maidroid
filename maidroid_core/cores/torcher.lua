@@ -39,7 +39,7 @@ local function on_step(self, dtime)
 			end
 
 			local owner = minetest.get_player_by_name(self.owner_name)
-			local wield_stack = self:get_wield_item_stack()
+			local wield_stack = self:get_wielded_item()
 			local front = self:get_front()
 
 			local pointed_thing = {
@@ -52,7 +52,7 @@ local function on_step(self, dtime)
 				local res_stack, success = minetest.item_place_node(wield_stack, owner, pointed_thing)
 				if success then
 					res_stack:take_item(1)
-					self:set_wield_item_stack(res_stack)
+					self:set_wielded_item(res_stack)
 				end
 			end
 			self.is_placing = false
@@ -81,7 +81,7 @@ local function on_step(self, dtime)
 
 		if not self.is_placing then
 			local front = self:get_front() -- if it is dark, set touch.
-			local wield_stack = self:get_wield_item_stack()
+			local wield_stack = self:get_wielded_item()
 
 			if is_dark(front)
 			and (wield_stack:get_name() == "default:torch"
@@ -101,7 +101,7 @@ local function on_step(self, dtime)
 
 		if not self.is_placing then
 			local front = self:get_front() -- if it is dark, set touch.
-			local wield_stack = self:get_wield_item_stack()
+			local wield_stack = self:get_wielded_item()
 
 			if is_dark(front)
 			and (wield_stack:get_name() == "default:torch"
