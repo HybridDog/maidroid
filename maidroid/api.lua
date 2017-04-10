@@ -275,12 +275,14 @@ do
 		if self.maidroid_object then
 			local luaentity = self.maidroid_object:get_luaentity()
 			if luaentity then
-				local stack = luaentity:get_wield_item_stack()
+				local stack = luaentity:get_wielded_item()
 
 				if stack:get_name() ~= self.itemname then
 					if stack:is_empty() then
 						self.itemname = ""
-						self.object:set_properties{textures={"maidroid:dummy_empty_craftitem"}}
+						self.object:set_properties{
+							textures = {"maidroid:dummy_empty_craftitem"}
+						}
 					else
 						self.itemname = stack:get_name()
 						self.object:set_properties{textures={self.itemname}}
@@ -623,8 +625,8 @@ function maidroid.register_maidroid(product_name, def)
 		get_look_direction           = maidroid.maidroid.get_look_direction,
 		set_animation                = maidroid.maidroid.set_animation,
 		set_yaw_by_direction         = maidroid.maidroid.set_yaw_by_direction,
-		get_wield_item_stack         = maidroid.maidroid.get_wield_item_stack,
-		set_wield_item_stack         = maidroid.maidroid.set_wield_item_stack,
+		get_wielded_item         = maidroid.maidroid.get_wield_item_stack,
+		set_wielded_item         = maidroid.maidroid.set_wield_item_stack,
 		add_item_to_main             = maidroid.maidroid.add_item_to_main,
 		move_main_to_wield           = maidroid.maidroid.move_main_to_wield,
 		is_named                     = maidroid.maidroid.is_named,
