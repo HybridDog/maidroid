@@ -7,6 +7,7 @@ local instr = {
 	{"getyaw", "<v yaw>", "Gets the maidroid's yaw."},
 
 	{"get_node", "<s posname>", 'Gets the node at posname, name, param2 etc. are stored in vars[posname .. ".name" etc.]. The maximum range depends on the tool.'},
+	{"get_nodedef", "<vs nodename>, <vs deftblname>", "Copies some fields of nodename's node definition, e.g. ${deftblname}.walkable := minetest.registered_nodes[nodename].walkable. If the node is unknown, nodename is set to false. For a list of supported fields, look at maidroid_core/cores/ocr.lua."},
 	{"get_item_group", "<vs name>, <s group>", "Sets name to the minetest.get_item_group(name, group)."},
 
 	{"setyaw", "<n yaw>", "Sets the maidroid's yaw in radians."},
