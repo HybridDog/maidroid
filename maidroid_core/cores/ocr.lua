@@ -359,7 +359,7 @@ local function get_code(self)
 	for i = 1,#list do
 		local stack = list[i]
 		if stack:get_name() == "default:book_written" then
-			local data = minetest.deserialize(stack:get_metadata())
+			local data = minetest.deserialize(stack:get_meta():to_table())
 			if data
 			and data.title == "main" then
 				return data.text
