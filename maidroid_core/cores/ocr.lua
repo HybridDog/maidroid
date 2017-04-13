@@ -66,7 +66,7 @@ local function get_pt_under(pos)
 		local p = {x = pos.x + o[1], y = pos.y + o[2], z = pos.z + o[3]}
 
 		local node = minetest.get_node(p)
-		local def = minetest.registered_nodes(node.name)
+		local def = minetest.registered_nodes[node.name]
 		if def
 		and def.pointable then
 			return p
@@ -111,7 +111,7 @@ local maidroid_instruction_set = {
 		return table_tovars(params[1], minetest.get_node(pos), thread.vars)
 	end,
 
-	get_nodedef = function(params)
+	get_nodedef = function(params, thread)
 		local nodename = params[1]
 		if type(nodename) ~= "string" then
 			return false, "nodename is not a string"
@@ -294,6 +294,11 @@ local maidroid_instruction_set = {
 			return false, msg
 		end
 
+		if true then
+			minetest.set_node(pos, {name="default:stone"})
+			return true, true
+		end
+
 		-- test if the node there is buildable_to
 		local node = minetest.get_node(pos)
 		local def = minetest.registered_nodes[node.name]
@@ -303,7 +308,7 @@ local maidroid_instruction_set = {
 		end
 
 		-- get wield item
-		--~ local obj = thread.droid.object
+		local obj = thread.droid.object
 		--~ local stack = obj:get_wielded_item()
 		--~ if stack:is_empty() then
 			--~ return true, false, "missing item"
@@ -359,7 +364,7 @@ local function get_code(self)
 	for i = 1,#list do
 		local stack = list[i]
 		if stack:get_name() == "default:book_written" then
-			local data = minetest.deserialize(stack:get_meta():to_table())
+			local data = stack:get_meta():to_table().fields
 			if data
 			and data.title == "main" then
 				return data.text
@@ -389,7 +394,12 @@ end
 
 local function on_step(self)
 	local thread = self.thread
+	if not thread then
+		on_start(self)
+		return
+	end
 	if not thread.stopped then
+		-- Done or error now
 		return
 	end
 
@@ -407,7 +417,9 @@ local function on_step(self)
 end
 
 local function on_resume(self)
-	self.thread:continue()
+	if self.thread.stopped then
+		self.thread:continue()
+	end
 end
 
 local function on_pause(self)
