@@ -3,6 +3,11 @@
 -- https://github.com/tacigar/maidroid
 ------------------------------------------------------------
 
+-- This list ought to contain only the nodedef fields which are known by players
+local known_nodedef_info = {"tiles", "use_texture_alpha", "post_effect_color",
+	"walkable", "pointable", "climbable", "buildable_to", "light_source",
+	"damage_per_second", "sounds", "groups", "sunlight_propagates"}
+
 local function usleep(t, thread)
 	if not pdisc.standard_befehlssatz.usleep({t}, thread) then
 		error"Problem with pdisc instruction set."
@@ -97,13 +102,29 @@ local maidroid_instruction_set = {
 			return false, msg
 		end
 
-		local range = minetest.registered_items[""].range or 14
+		local range = 100
 		local mp = thread.droid.object:getpos()
 		if vector.distance(pos, mp) > range then
 			return false, "node too far away"
 		end
 
 		return table_tovars(params[1], minetest.get_node(pos), thread.vars)
+	end,
+
+	get_nodedef = function(params)
+		local nodename = params[1]
+		if type(nodename) ~= "string" then
+			return false, "nodename is not a string"
+		end
+		local def = minetest.registered_nodes[nodename]
+		if not def then
+			return true, false
+		end
+		local localdef = {}
+		for i = 1,#known_nodedef_info do
+			localdef[known_nodedef_info[i]] = def[known_nodedef_info[i]]
+		end
+		return table_tovars(params[2], localdef, thread.vars)
 	end,
 
 	get_item_group = function(params)
@@ -190,7 +211,7 @@ local maidroid_instruction_set = {
 		local node = minetest.get_node(pos)
 		local def = minetest.registered_nodes[node.name]
 		if not def
-		or not def.diggable
+		or not def.diggable -- diggable is also tested in the on_dig
 		or not def.pointable then
 			return true, false, "node not diggable"
 		end
@@ -243,11 +264,11 @@ local maidroid_instruction_set = {
 			return true, false, "no air after digging"
 		end
 
-		-- adjust toolwear, needs testing
-		if used_tool then
-			wielded:add_wear(dp_pool[used_tool].wear)
-			obj:set_wielded_item(wielded)
-		end
+		-- toolwear is adjusted in on_dig, needs testing
+		--~ if used_tool then
+			--~ wielded:add_wear(dp_pool[used_tool].wear)
+			--~ obj:set_wielded_item(wielded)
+		--~ end
 
 		-- play sound
 		local sound = def.sounds and def.sounds.dug
@@ -260,7 +281,6 @@ local maidroid_instruction_set = {
 		usleep(dp_result.time * 1000000, thread)
 		update_animation(thread.droid)
 
-		-- TODO:
 		-- the items aren't added to the maidroid inventory
 			-- (needs fakeplayer(droid) fix)
 
@@ -274,7 +294,7 @@ local maidroid_instruction_set = {
 			return false, msg
 		end
 
-		-- test if the node there can be pointed
+		-- test if the node there is buildable_to
 		local node = minetest.get_node(pos)
 		local def = minetest.registered_nodes[node.name]
 		if not def
@@ -283,11 +303,12 @@ local maidroid_instruction_set = {
 		end
 
 		-- get wield item
-		local obj = thread.droid.object
-		local stack = obj:get_wielded_item()
-		if stack:is_empty() then
-			return true, false, "missing item"
-		end
+		--~ local obj = thread.droid.object
+		--~ local stack = obj:get_wielded_item()
+		--~ if stack:is_empty() then
+			--~ return true, false, "missing item"
+		--~ end
+		local stack = ItemStack"default:stone"
 
 		-- get pt.under
 		local under = get_pt_under(pos)
