@@ -443,3 +443,14 @@ maidroid.register_core("maidroid_core:ocr", {
 	on_pause         = on_pause,
 	on_step          = on_step,
 })
+
+
+--[[
+TODO:
+* fix place and dig instruction
+* add functions for inventory
+* add cheat instruction for server admins (set_node, …)
+* instructions for communicating
+* lots of testing
+* implement farming core and the others in a book (maybe controversial)
+]]
