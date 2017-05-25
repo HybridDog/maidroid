@@ -60,7 +60,12 @@ local under_offsets = {
 	{0,0,-1}, {-1,0,0}, {1,0,0}, {0,0,1},
 	{0,1,0}
 }
-local function get_pt_under(pos)
+local function get_pt_under(pos, dir)
+	if dir then
+		local p = vector.round(vector.add(pos, dir))
+		local def = minetest.registered_nodes[minetest.get_node(p).name]
+		return def and def.pointable and p
+	end
 	for i = 1,#under_offsets do
 		local o = under_offsets[i]
 		local p = {x = pos.x + o[1], y = pos.y + o[2], z = pos.z + o[3]}
@@ -294,13 +299,8 @@ local maidroid_instruction_set = {
 			return false, msg
 		end
 
-		if true then
-			minetest.set_node(pos, {name="default:stone"})
-			return true, true
-		end
-
 		-- test if the node there is buildable_to
-		local node = minetest.get_node(pos)
+		local node = minetest.get_node_or_nil(pos) or {}
 		local def = minetest.registered_nodes[node.name]
 		if not def
 		or not def.buildable_to then
@@ -308,12 +308,10 @@ local maidroid_instruction_set = {
 		end
 
 		-- get wield item
-		local obj = thread.droid.object
-		--~ local stack = obj:get_wielded_item()
-		--~ if stack:is_empty() then
-			--~ return true, false, "missing item"
-		--~ end
-		local stack = ItemStack"default:stone"
+		local stack = thread.droid:get_wielded_item()
+		if stack:is_empty() then
+			return true, false, "missing item"
+		end
 
 		-- get pt.under
 		local under = get_pt_under(pos)
@@ -327,17 +325,43 @@ local maidroid_instruction_set = {
 			under = under,
 			type = "node"
 		}
-		local newitem, succ = stack:get_definition().on_place(stack, obj, pt)
+		local stack_def = stack:get_definition()
+		local newitem, succ = stack_def.on_place(stack, thread.droid.object, pt)
 		if not succ then
 			return true, false, "could not place"
 		end
 
+		-- play the place sound
+		if stack_def.sounds
+		and stack_def.sounds.place then
+			minetest.sound_play(stack_def.sounds.place, {
+				pos = pos,
+				max_hear_distance = 10,
+			})
+		end
+
 		-- set new item
 		if newitem then
-			obj:get_wielded_item(newitem)
+			thread.droid:set_wielded_item(newitem)
 		end
 
 		return true, true
+	end,
+
+	select_item = function(params, thread)
+		if not params[1]
+		or type(params[1]) ~= "number" then
+			return false, "number expected"
+		end
+		local inv = thread.droid:get_inventory()
+		if not params[1] >= 1  -- NaN checked
+		or params[1] > inv:get_size"main" then
+			return false, "invalid inventory index"
+		end
+		local stack = inv:get_stack("main", params[1])
+		inv:set_stack("main", params[1], inv:get_stack("wield_item", 1))
+		inv:set_stack("wield_item", 1, stack)
+		return true
 	end,
 
 	beep = function(_, thread)
