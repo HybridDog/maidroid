@@ -16,6 +16,7 @@ local instr = {
 	{"dig", "<s posname>[, <v errormsg>]", "Digs a node, if posname is a variable, it is set to a bool indicating whether digging succeeded. If false, errormsg tells the reason."},
 	{"place", "<s posname>[, <v errormsg>]", "Places a node, if posname is a variable, it is set to a bool indicating whether placing succeeded. If false, errormsg tells the reason."},
 	{"jump", "[<n heigth>]", "Makes the droid jump, if height is invalid (height ∈ ]0,2]), it's set to 1, if it's a variable, it's set to a bool indicating whether the jump succeeded."},
+	{"select_item", "<index>", "Swaps the currently wielded item with the item at place <index>."},
 	{"beep", "", "Execute this every second while the droid walks backwards, pls."},
 }
 

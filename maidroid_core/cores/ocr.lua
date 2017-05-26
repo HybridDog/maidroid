@@ -353,7 +353,7 @@ local maidroid_instruction_set = {
 		end
 		local inv = thread.droid:get_inventory()
 		if params[1] < 1 or params[1] > inv:get_size("main") then
-			return false, "index out of boarders"
+			return false, "invalid inventory index"
 		end
 		local stack = inv:get_stack("main", params[1])
 		inv:set_stack("main", params[1], inv:get_stack("wield_item", 1))
