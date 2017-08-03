@@ -226,7 +226,7 @@ local maidroid_instruction_set = {
 		local mp = obj:getpos()
 		local dist = vector.distance(mp, pos)
 		local dp_result
-		local groups = ItemStack(node):get_definition().groups
+		local groups = def.groups
 		local dp_pool = {}
 		dp_pool[1] = minetest.get_dig_params(
 			groups,
@@ -262,12 +262,12 @@ local maidroid_instruction_set = {
 			return true, false, "insufficient tool capabilities"
 		end
 
-		-- dig node
-		def.on_dig(pos, node, obj)
-		--The block not being air is considered "failure".
-		if minetest.get_node(pos).name ~= "air" then
-			return true, false, "no air after digging"
-		end
+		def.on_dig(pos, node, obj:get_luaentity())
+		--~ local success = minetest.dig_node(pos)
+
+		--~ if not success then
+			--~ return true, false, "no success"
+		--~ end
 
 		-- toolwear is adjusted in on_dig, needs testing
 		--~ if used_tool then
@@ -285,9 +285,6 @@ local maidroid_instruction_set = {
 		update_animation(thread.droid, "MINE")
 		usleep(dp_result.time * 1000000, thread)
 		update_animation(thread.droid)
-
-		-- the items aren't added to the maidroid inventory
-			-- (needs fakeplayer(droid) fix)
 
 		return true, true, dp_result.time
 	end,
@@ -354,7 +351,7 @@ local maidroid_instruction_set = {
 			return false, "number expected"
 		end
 		local inv = thread.droid:get_inventory()
-		if not params[1] >= 1  -- NaN checked
+		if not (params[1] >= 1)  -- NaN checked
 		or params[1] > inv:get_size"main" then
 			return false, "invalid inventory index"
 		end
@@ -471,7 +468,6 @@ maidroid.register_core("maidroid_core:ocr", {
 
 --[[
 TODO:
-* fix place and dig instruction
 * add functions for inventory
 * add cheat instruction for server admins (set_node, …)
 * instructions for communicating
