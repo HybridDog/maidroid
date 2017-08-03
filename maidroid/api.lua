@@ -386,11 +386,6 @@ function maidroid.register_maidroid(product_name, def)
 			allow_put = function(inv, listname, index, stack, player)
 				-- only cores can put to a core inventory.
 				if listname == "main" then
-					print(dump(inv))
-					print(dump(listname))
-					print(dump(index))
-					print(dump(stack))
-					print(dump(player))
 					return stack:get_count()
 				elseif listname == "core" and maidroid.is_core(stack:get_name()) then
 					return stack:get_count()
