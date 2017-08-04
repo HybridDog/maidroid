@@ -51,6 +51,19 @@ end
 -- this table's methods must be put there.
 maidroid.maidroid = {}
 
+-- for the case, the luaentity is used as player
+function maidroid.maidroid.is_player(self)
+	if maidroid.maidroid.is_player_currently then
+		maidroid.maidroid.is_player_currently = false
+		return true
+	end
+	return false
+end
+
+function maidroid.maidroid.get_player_name(self)
+	return ""
+end
+
 -- maidroid.maidroid.get_inventory returns a inventory of a maidroid.
 function maidroid.maidroid.get_inventory(self)
 	return minetest.get_inventory {
@@ -616,6 +629,8 @@ function maidroid.register_maidroid(product_name, def)
 		get_staticdata               = get_staticdata,
 
 		-- extra methods.
+		is_player                    = maidroid.maidroid.is_player,
+		get_player_name              = maidroid.maidroid.get_player_name,
 		get_inventory                = maidroid.maidroid.get_inventory,
 		get_core                     = maidroid.maidroid.get_core,
 		get_core_name                = maidroid.maidroid.get_core_name,
