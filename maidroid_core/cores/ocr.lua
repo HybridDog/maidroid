@@ -79,6 +79,11 @@ local function get_pt_under(pos, dir)
 	end
 end
 
+local chat_last_sayer, chat_last_message = "", ""
+minetest.register_on_chat_message(function(name, message)
+	chat_last_sayer, chat_last_message = name, message
+end)
+
 local maidroid_instruction_set = {
 	-- popular (similars in lua_api) information gathering functions
 	getpos = function(params, thread)
@@ -234,7 +239,7 @@ local maidroid_instruction_set = {
 		)
 		dp_pool[1].range = minetest.registered_items[""].range or 14
 		-- currently 1 possible tool
-		local wielded = obj:get_luaentity():get_wielded_item()
+		local wielded = thread.droid:get_wielded_item()
 		dp_pool[2] = minetest.get_dig_params(
 			groups,
 			wielded:get_tool_capabilities()
@@ -262,7 +267,7 @@ local maidroid_instruction_set = {
 			return true, false, "insufficient tool capabilities"
 		end
 
-		maidroid.maidroid.is_player_currently = true
+		thread.droid.is_player_currently = true
 		def.on_dig(pos, node, obj:get_luaentity())
 		--~ local success = minetest.dig_node(pos)
 
@@ -365,6 +370,10 @@ local maidroid_instruction_set = {
 	beep = function(_, thread)
 		minetest.sound_play("maidroid_beep", {pos = thread.droid.object:getpos()})
 		return true
+	end,
+
+	listen_chat = function()
+		return true, {chat_last_sayer, chat_last_message}
 	end,
 }
 
