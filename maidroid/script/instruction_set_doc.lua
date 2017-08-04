@@ -18,6 +18,7 @@ local instr = {
 	{"place", "<s posname>[, <v errormsg>]", "Places a node, if posname is a variable, it is set to a bool indicating whether placing succeeded. If false, errormsg tells the reason."},
 	{"select_item", "<index>", "Swaps the currently wielded item with the item at place <index> in the main inventory."},
 	{"beep", "", "Execute this every second while the droid walks backwards, pls."},
+	{"listen_chat", "<s sayer>, <s message>", "Get the last thing that was written from a player into chat and the player's name."},
 }
 
 o = "Instructions:\n\n"
