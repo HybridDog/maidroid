@@ -262,13 +262,13 @@ local maidroid_instruction_set = {
 			return true, false, "insufficient tool capabilities"
 		end
 
+		maidroid.maidroid.is_player_currently = true
 		def.on_dig(pos, node, obj:get_luaentity())
 		--~ local success = minetest.dig_node(pos)
 
 		--~ if not success then
 			--~ return true, false, "no success"
 		--~ end
-		maidroid.maidroid.is_player_currently = true
 
 		-- toolwear is adjusted in on_dig, needs testing
 		--~ if used_tool then
