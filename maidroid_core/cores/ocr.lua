@@ -268,6 +268,7 @@ local maidroid_instruction_set = {
 		--~ if not success then
 			--~ return true, false, "no success"
 		--~ end
+		maidroid.maidroid.is_player_currently = true
 
 		-- toolwear is adjusted in on_dig, needs testing
 		--~ if used_tool then
