@@ -234,7 +234,7 @@ local maidroid_instruction_set = {
 		)
 		dp_pool[1].range = minetest.registered_items[""].range or 14
 		-- currently 1 possible tool
-		local wielded = obj:get_wielded_item()
+		local wielded = obj:get_luaentity():get_wielded_item()
 		dp_pool[2] = minetest.get_dig_params(
 			groups,
 			wielded:get_tool_capabilities()
