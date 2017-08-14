@@ -53,8 +53,8 @@ maidroid.maidroid = {}
 
 -- for the case, the luaentity is used as player
 function maidroid.maidroid.is_player(self)
-	if maidroid.maidroid.is_player_currently then
-		maidroid.maidroid.is_player_currently = false
+	if self.is_player_currently then
+		self.is_player_currently = false
 		return true
 	end
 	return false
@@ -620,6 +620,7 @@ function maidroid.register_maidroid(product_name, def)
 		pause                        = false,
 		manufacturing_number         = -1,
 		owner_name                   = "",
+		is_player_currently          = false,
 
 		-- callback methods.
 		on_activate                  = on_activate,
