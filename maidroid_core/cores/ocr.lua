@@ -369,9 +369,8 @@ local maidroid_instruction_set = {
 
 	beep = function(params, thread)
 		local f = params[1]
-		f = type(f) == "number" and f or 2000
+		f = type(f) == "number" and f > 0 and f or 2000
 		local p = f/2000 -- 2000 Hz is the frequency of maidroid_beep.ogg.
-		p = math.floor(p+0.5)
 		p = math.min(math.max(p, 0.1), 2)
 		minetest.sound_play("maidroid_beep", {
 			pos = thread.droid.object:getpos(),
