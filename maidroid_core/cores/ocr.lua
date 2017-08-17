@@ -370,9 +370,9 @@ local maidroid_instruction_set = {
 	beep = function(params, thread)
 		local g, f = unpack(params)
 		g = type(g) == "number" and g or 1
-		f = type(f) == "number" and f or 44.1
-		local p = f/44.1 -- 44.100 kHz is the frequency of maidroid_beep.ogg.
-		p = math.floor(p*1000+0.5)/1000
+		f = type(f) == "number" and f or 2000
+		local p = f/2000 -- 2000 Hz is the frequency of maidroid_beep.ogg.
+		p = math.floor(p+0.5)
 		g = math.min(g, 1.5)
 		p = math.min(math.max(p, 0.1), 2)
 		minetest.sound_play("maidroid_beep", {
