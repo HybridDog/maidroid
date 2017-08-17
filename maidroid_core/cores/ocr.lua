@@ -377,7 +377,7 @@ local maidroid_instruction_set = {
 			pos = thread.droid.object:getpos(),
 			gain = g,
 			pitch = p,
-			max_hear_distance = 32/g,
+			max_hear_distance = 32*g,
 		})
 		return true
 	end,
