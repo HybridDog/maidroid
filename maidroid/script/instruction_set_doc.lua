@@ -20,7 +20,7 @@ local instr = {
 	{"use", "[<s posname> | <n object_id>]", "Calls wielded item's on_use. If no on_use, punches."},
 	{"punch", "[<s posname> | <n object_id>]", "Same as use."},
 	{"secondary_use", "[<s posname> | <n object_id>]", "Calls wielded item's on_use. If no on_use, punches."},
-	{"drop", "", "Calls wielditem's on_drop"},
+	{"drop", "[<n count>]", "Calls wielditem's on_drop"},
 
 	{"select_item", "<index>", "Swaps the currently wielded item with the item at place <index> in the main inventory."},
 

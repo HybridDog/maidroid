@@ -440,9 +440,15 @@ local maidroid_instruction_set = {
 		if not (wielditem_def and wielditem_def.on_drop) then
 			return true
 		end
+		local count = params[1]
+		if count and type(count) == "number" and not count <= 0 then
+			wielditem:set_count(math.min(count, wielditem:get_count()))
+		end
 		thread.droid.is_player_currently = true
-		wielditem_def.on_drop(wielditem, thread.droid, thread.droid:get_pos())
+		wielditem = wielditem_def.on_drop(wielditem, thread.droid, thread.droid:get_pos())
+		wielditem = ItemStack(wielditem)
 		thread.droid.is_player_currently = false
+		thread.droid:set_wielded_item(wielditem)
 		return true
 	end,
 
