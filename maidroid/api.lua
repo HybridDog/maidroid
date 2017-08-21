@@ -91,12 +91,12 @@ end
 -- is the nearest to the maidroid.
 function maidroid.maidroid.get_nearest_player(self, range_distance)
 	local player, min_distance = nil, range_distance
-	local position = self.object:getpos()
+	local position = self.object:get_pos()
 
 	local all_objects = minetest.get_objects_inside_radius(position, range_distance)
 	for _, object in pairs(all_objects) do
 		if object:is_player() then
-			local player_position = object:getpos()
+			local player_position = object:get_pos()
 			local distance = vector.distance(position, player_position)
 
 			if distance < min_distance then
@@ -123,7 +123,7 @@ function maidroid.maidroid.get_front(self)
 		direction.z = 0
 	end
 
-	return vector.add(vector.round(self.object:getpos()), direction)
+	return vector.add(vector.round(self.object:get_pos()), direction)
 end
 
 -- maidroid.maidroid.get_front_node returns a node that exists in front of the maidroid.
@@ -208,7 +208,7 @@ end
 
 -- maidroid.maidroid.change_direction change direction to destination and velocity vector.
 function maidroid.maidroid.change_direction(self, destination)
-  local position = self.object:getpos()
+  local position = self.object:get_pos()
   local direction = vector.subtract(destination, position)
 	direction.y = 0
   local velocity = vector.multiply(vector.normalize(direction), 1.5)
@@ -351,7 +351,7 @@ function maidroid.register_egg(egg_name, def)
 				-- set maidroid's direction.
 				local new_maidroid = minetest.add_entity(pointed_thing.above, def.product_name)
 				new_maidroid:get_luaentity():set_yaw_by_direction(
-					vector.subtract(user:getpos(), new_maidroid:getpos())
+					vector.subtract(user:get_pos(), new_maidroid:get_pos())
 				)
 				new_maidroid:get_luaentity().owner_name = user:get_player_name()
 				new_maidroid:get_luaentity():update_infotext()
@@ -497,7 +497,7 @@ function maidroid.register_maidroid(product_name, def)
 		}
 
 		-- attach dummy item to new maidroid.
-		local dummy_item = minetest.add_entity(self.object:getpos(), "maidroid:dummy_item")
+		local dummy_item = minetest.add_entity(self.object:get_pos(), "maidroid:dummy_item")
 		dummy_item:set_attach(self.object, "Arm_R", {x = 0.065, y = 0.50, z = -0.15}, {x = -45, y = 0, z = 0})
 		dummy_item:get_luaentity().maidroid_object = self.object
 
@@ -534,7 +534,7 @@ function maidroid.register_maidroid(product_name, def)
 
 	-- maidroid.maidroid.pickup_item pickup items placed and put it to main slot.
 	local function pickup_item(self)
-		local pos = self.object:getpos()
+		local pos = self.object:get_pos()
 		local radius = 1.0
 		local all_objects = minetest.get_objects_inside_radius(pos, radius)
 
@@ -547,7 +547,7 @@ function maidroid.register_maidroid(product_name, def)
 					local stack = ItemStack(itemstring)
 					local leftover = inv:add_item("main", stack)
 
-					minetest.add_item(obj:getpos(), leftover)
+					minetest.add_item(obj:get_pos(), leftover)
 					obj:get_luaentity().itemstring = ""
 					obj:remove()
 				end
