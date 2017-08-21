@@ -336,19 +336,8 @@ local maidroid_instruction_set = {
 			return false, msg
 		end
 
-		-- test if the node there is buildable_to
-		local node = minetest.get_node_or_nil(pos) or {}
-		local def = minetest.registered_nodes[node.name]
-		if not def
-		or not def.buildable_to then
-			return true, {false, "node not buildable_to"}
-		end
-
 		-- get wield item
 		local stack = thread.droid:get_wielded_item()
-		if stack:is_empty() then
-			return true, {false, "missing item"}
-		end
 
 		-- get pt.under (get_look_direction is not used since it only uses yaw)
 		local under = get_pt_under(pos, vector.direction(thread.droid:get_pos(), pos))
@@ -383,6 +372,48 @@ local maidroid_instruction_set = {
 		end
 
 		return true, true
+	end,
+
+	rightclick = function(params, thread)
+		-- get pt.under
+		local pos, msg = pos_from_varname(params[1], thread.vars)
+		if not pos then
+			return false, msg
+		end
+
+		-- get wield item
+		local stack = thread.droid:get_wielded_item()
+
+		-- get pt.above (get_look_direction is not used since it only uses yaw)
+		local above = get_pt_above(pos, vector.direction(thread.droid:get_pos(), pos))
+
+		-- place it
+		local pt = {
+			above = above,
+			under = pos,
+			type = "node"
+		}
+		local stack_def = stack:get_definition()
+		local newitem, succ = stack_def.on_place(stack, thread.droid.object, pt)
+		if not succ then
+			return true, true
+		end
+
+		-- play the place sound
+		if stack_def.sounds
+		and stack_def.sounds.place then
+			minetest.sound_play(stack_def.sounds.place, {
+				pos = pos,
+				max_hear_distance = 10,
+			})
+		end
+
+		-- set new item
+		if newitem then
+			thread.droid:set_wielded_item(newitem)
+		end
+
+		return true, {false, "no on_rightclick"}
 	end,
 
 	use = function(params, thread)
@@ -500,7 +531,6 @@ maidroid_instruction_set.getacceleration  = maidroid_instruction_set.get_acceler
 maidroid_instruction_set.getyaw  = maidroid_instruction_set.get_yaw
 maidroid_instruction_set.setyaw  = maidroid_instruction_set.set_yaw
 maidroid_instruction_set.punch = maidroid_instruction_set.use
-maidroid_instruction_set.rightclick = maidroid_instruction_set.place
 
 
 local function mylog(log)

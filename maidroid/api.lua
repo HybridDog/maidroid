@@ -68,6 +68,11 @@ function maidroid.maidroid.get_inventory(self)
 	}
 end
 
+-- maidroid.maidroid.get_pos returns the pos of the maidroid (to use it as player)
+function maidroid.maidroid.get_pos(self)
+	return self.object:get_pos()
+end
+
 -- maidroid.maidroid.get_core_name returns a name of a maidroid's current core.
 function maidroid.maidroid.get_core_name(self)
 	local inv = self:get_inventory()
@@ -629,6 +634,8 @@ function maidroid.register_maidroid(product_name, def)
 		is_player                    = maidroid.maidroid.is_player,
 		get_player_name              = maidroid.maidroid.get_player_name,
 		get_inventory                = maidroid.maidroid.get_inventory,
+		get_pos                      = maidroid.maidroid.get_pos,
+		getpos                       = maidroid.maidroid.get_pos,
 		get_core                     = maidroid.maidroid.get_core,
 		get_core_name                = maidroid.maidroid.get_core_name,
 		get_nearest_player           = maidroid.maidroid.get_nearest_player,
@@ -637,8 +644,8 @@ function maidroid.register_maidroid(product_name, def)
 		get_look_direction           = maidroid.maidroid.get_look_direction,
 		set_animation                = maidroid.maidroid.set_animation,
 		set_yaw_by_direction         = maidroid.maidroid.set_yaw_by_direction,
-		get_wielded_item         = maidroid.maidroid.get_wield_item_stack,
-		set_wielded_item         = maidroid.maidroid.set_wield_item_stack,
+		get_wielded_item             = maidroid.maidroid.get_wield_item_stack,
+		set_wielded_item             = maidroid.maidroid.set_wield_item_stack,
 		add_item_to_main             = maidroid.maidroid.add_item_to_main,
 		move_main_to_wield           = maidroid.maidroid.move_main_to_wield,
 		is_named                     = maidroid.maidroid.is_named,
