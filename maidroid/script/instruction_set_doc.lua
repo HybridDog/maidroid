@@ -16,7 +16,7 @@ local instr = {
 
 	{"dig", "<s posname>[, <v errormsg>]", "Digs a node, if posname is a variable, it is set to a bool indicating whether digging succeeded. If false, errormsg tells the reason."},
 	{"place", "<s posname>[, <v errormsg>]", "Places a node, if posname is a variable, it is set to a bool indicating whether placing succeeded. If false, errormsg tells the reason. Can call on_rightclick instead if given."},
-	{"rightclick", "<s posname>[, <v errormsg>]", "Calls node's on_rightclick. Can instead place one node nearer to droid if no on_rightclick."},
+	{"rightclick", "<s posname>[, <v errormsg>]", "Calls object's or node's on_rightclick. Can instead place one node nearer to droid if no on_rightclick in node definition."},
 	{"use", "[<s posname> | <n object_id>]", "Calls wielded item's on_use. If no on_use, punches."},
 	{"punch", "[<s posname> | <n object_id>]", "Same as use."},
 	{"secondary_use", "[<s posname> | <n object_id>]", "Calls wielded item's on_use. If no on_use, punches."},

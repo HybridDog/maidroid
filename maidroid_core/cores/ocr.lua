@@ -375,6 +375,23 @@ local maidroid_instruction_set = {
 	end,
 
 	rightclick = function(params, thread)
+		-- check if object shall rightclicked
+		if type(params[1]) == "number" then
+			local obj = minetest.object_refs[params[1]]
+			if obj:is_player() then
+				return true
+			end
+			local luaent = obj:get_luaentity()
+			local def = minetest.registered_entities[luaent.name]
+			if not def or not def.on_rightclick then
+				return true
+			end
+			thread.droid.is_player_currently = true
+			def.on_rightclick(luaent, thread.droid)
+			thread.droid.is_player_currently = false
+			return true
+		end
+
 		-- get pt.under
 		local pos, msg = pos_from_varname(params[1], thread.vars)
 		if not pos then
