@@ -87,7 +87,7 @@ end)
 local maidroid_instruction_set = {
 	-- popular (similars in lua_api) information gathering functions
 	getpos = function(params, thread)
-		return table_tovars(params[1], thread.droid.object:getpos(),
+		return table_tovars(params[1], thread.droid.object:get_pos(),
 			thread.vars)
 	end,
 
@@ -96,7 +96,7 @@ local maidroid_instruction_set = {
 	end,
 
 	getacceleration = function(params, thread)
-		return table_tovars(params[1], thread.droid.object:getacceleration(),
+		return table_tovars(params[1], thread.droid.object:get_acceleration(),
 			thread.vars)
 	end,
 
@@ -113,7 +113,7 @@ local maidroid_instruction_set = {
 		end
 
 		local range = 100
-		local mp = thread.droid.object:getpos()
+		local mp = thread.droid.object:get_pos()
 		if vector.distance(pos, mp) > range then
 			return false, "node too far away"
 		end
@@ -178,7 +178,7 @@ local maidroid_instruction_set = {
 		end
 
 		-- play sound
-		local p = droid.object:getpos()
+		local p = droid.object:get_pos()
 		p.y = p.y - 1
 		local node_under = minetest.get_node(p).name
 		local def = minetest.registered_nodes[node_under]
@@ -192,7 +192,7 @@ local maidroid_instruction_set = {
 		end
 
 		-- perform jump
-		droid.vel.y = math.sqrt(-2 * h * droid.object:getacceleration().y)
+		droid.vel.y = math.sqrt(-2 * h * droid.object:get_acceleration().y)
 		droid.object:setvelocity(droid.vel)
 		return true, true
 	end,
@@ -228,7 +228,7 @@ local maidroid_instruction_set = {
 
 		-- test tool params (Code from simple_robots)
 		local obj = thread.droid.object
-		local mp = obj:getpos()
+		local mp = obj:get_pos()
 		local dist = vector.distance(mp, pos)
 		local dp_result
 		local groups = def.groups
@@ -373,7 +373,7 @@ local maidroid_instruction_set = {
 		local p = f/2000 -- 2000 Hz is the frequency of maidroid_beep.ogg.
 		p = math.min(math.max(p, 0.1), 2)
 		minetest.sound_play("maidroid_beep", {
-			pos = thread.droid.object:getpos(),
+			pos = thread.droid.object:get_pos(),
 			pitch = p,
 		})
 		return true
@@ -445,7 +445,7 @@ local function on_step(self)
 	local t_end = minetest.get_us_time() + 1000
 	while minetest.get_us_time() < t_end do
 		self.vel_prev = self.vel
-		self.vel = self.object:getvelocity()
+		self.vel = self.object:get_velocity()
 
 		if not thread:try_rebirth() -- ← sleeping
 		or not thread.stopped then -- ← aborted
