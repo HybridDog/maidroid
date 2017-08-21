@@ -448,7 +448,6 @@ local maidroid_instruction_set = {
 		thread.droid.is_player_currently = true
 		wielditem = wielditem_def.on_drop(wielditem, thread.droid, pos)
 		wielditem = ItemStack(wielditem)
-		thread.droid.is_player_currently = false
 		local inv = thread.droid:get_inventory()
 		wielditem = inv:add_item("wield_item", wielditem)
 		if not wielditem:is_empty() then
@@ -457,6 +456,7 @@ local maidroid_instruction_set = {
 				minetest.item_drop(wielditem, thread.droid, pos)
 			end
 		end
+		thread.droid.is_player_currently = false
 		return true
 	end,
 
