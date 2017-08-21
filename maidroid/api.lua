@@ -53,11 +53,7 @@ maidroid.maidroid = {}
 
 -- for the case, the luaentity is used as player
 function maidroid.maidroid.is_player(self)
-	if self.is_player_currently then
-		self.is_player_currently = false
-		return true
-	end
-	return false
+	return self.is_player_currently
 end
 
 function maidroid.maidroid.get_player_name(self)

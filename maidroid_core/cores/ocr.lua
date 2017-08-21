@@ -79,6 +79,16 @@ local function get_pt_under(pos, dir)
 	end
 end
 
+local function get_pt_above(pos, dir)
+	if dir then
+		local p = vector.round(vector.add(pos, vector.multiply(dir, -1)))
+		return p
+	end
+	local p = vector.new(pos)
+	p.y = p.y + 1
+	return p
+end
+
 local chat_last_sayer, chat_last_message = "", ""
 minetest.register_on_chat_message(function(name, message)
 	chat_last_sayer, chat_last_message = name, message
@@ -86,21 +96,21 @@ end)
 
 local maidroid_instruction_set = {
 	-- popular (similars in lua_api) information gathering functions
-	getpos = function(params, thread)
+	get_pos = function(params, thread)
 		return table_tovars(params[1], thread.droid.object:get_pos(),
 			thread.vars)
 	end,
 
-	getvelocity = function(params, thread)
+	get_velocity = function(params, thread)
 		return table_tovars(params[1], thread.droid.vel, thread.vars)
 	end,
 
-	getacceleration = function(params, thread)
+	get_acceleration = function(params, thread)
 		return table_tovars(params[1], thread.droid.object:get_acceleration(),
 			thread.vars)
 	end,
 
-	getyaw = function(_, thread)
+	get_yaw = function(_, thread)
 		return true, thread.droid.object:getyaw()
 	end,
 
@@ -148,7 +158,7 @@ local maidroid_instruction_set = {
 	end,
 
 	-- popular actions for changing sth
-	setyaw = function(params, thread)
+	set_yaw = function(params, thread)
 		if #params ~= 1 then
 			return false, "wrong number of arguments"
 		end
@@ -211,6 +221,29 @@ local maidroid_instruction_set = {
 	end,
 
 	dig = function(params, thread)
+		-- the wielditem's on_use is ignored
+		--~ -- look if wielditem has on_use
+		--~ local wielditem = thread.droid:get_wielded_item()
+		--~ local wielditem_def = minetest.registered_items[wielditem:get_name()]
+		--~ if wielditem_def and wielditem_def.on_use then
+			--~ local pointed_thing = {}
+			--~ local pos = pos_from_varname(params[1], thread.vars)
+			--~ if pos then
+				--~ pointed_thing.type = "node"
+				--~ pointed_thing.under = pos
+				--~ -- get_look_direction is not used since it only uses yaw
+				--~ pointed_thing.above = get_pt_above(pos,
+						--~ vector.direction(thread.droid:get_pos(), pos))
+			--~ else
+				--~ pointed_thing.type = "nothing"
+			--~ end
+			--~ thread.droid.is_player_currently = true
+			--~ wielditem = wielditem_def.on_use(wielditem, thread.droid, pointed_thing)
+			--~ thread.droid.is_player_currently = false
+			--~ thread.droid:set_wielded_item(wielditem)
+			--~ return true, {false, "wielded item has on_use"}
+		--~ end
+
 		-- get position
 		local pos, msg = pos_from_varname(params[1], thread.vars)
 		if not pos then
@@ -223,7 +256,7 @@ local maidroid_instruction_set = {
 		if not def
 		or not def.diggable -- diggable is also tested in the on_dig
 		or not def.pointable then
-			return true, false, "node not diggable"
+			return true, {false, "node not diggable"}
 		end
 
 		-- test tool params (Code from simple_robots)
@@ -268,7 +301,8 @@ local maidroid_instruction_set = {
 		end
 
 		thread.droid.is_player_currently = true
-		def.on_dig(pos, node, obj:get_luaentity())
+		def.on_dig(pos, node, thread.droid)
+		thread.droid.is_player_currently = false
 		--~ local success = minetest.dig_node(pos)
 
 		--~ if not success then
@@ -316,8 +350,8 @@ local maidroid_instruction_set = {
 			return true, {false, "missing item"}
 		end
 
-		-- get pt.under
-		local under = get_pt_under(pos)
+		-- get pt.under (get_look_direction is not used since it only uses yaw)
+		local under = get_pt_under(pos, vector.direction(thread.droid:get_pos(), pos))
 		if not under then
 			return true, {false, "no node to place onto found"}
 		end
@@ -349,6 +383,67 @@ local maidroid_instruction_set = {
 		end
 
 		return true, true
+	end,
+
+	use = function(params, thread)
+		local wielditem = thread.droid:get_wielded_item()
+		local wielditem_def = minetest.registered_items[wielditem:get_name()]
+		local pointed_thing = {}
+		local pos = pos_from_varname(params[1], thread.vars)
+		local obj = minetest.object_refs[params[1]]
+		if pos then
+			pointed_thing.type = "node"
+			pointed_thing.under = pos
+			-- get_look_direction is not used since it only uses yaw
+			pointed_thing.above = get_pt_above(pos,
+					vector.direction(thread.droid:get_pos(), pos))
+		elseif obj then
+			pointed_thing.type = "object"
+			pointed_thing.ref = obj
+		else
+			pointed_thing.type = "nothing"
+		end
+		thread.droid.is_player_currently = true
+		if wielditem_def and wielditem_def.on_use then
+			wielditem = wielditem_def.on_use(wielditem, thread.droid, pointed_thing)
+			thread.droid:set_wielded_item(wielditem)
+		elseif pos then
+			local node = minetest.get_node(pos)
+			local node_def = minetest.registered_nodes[node.name]
+			if node_def and node_def.on_punch then
+				node_def.on_punch(pos, node, thread.droid, pointed_thing)
+			end
+		elseif obj then
+			obj:punch(thread.droid, 0, wielditem:get_tool_capabilities(),
+					vector.direction(thread.droid:get_pos(), pos))
+		end
+		thread.droid.is_player_currently = false
+		return true
+	end,
+
+	secondary_use = function(params, thread)
+		local wielditem = thread.droid:get_wielded_item()
+		local wielditem_def = minetest.registered_items[wielditem:get_name()]
+		if not (wielditem_def and wielditem_def.on_secondary_use) then
+			return true
+		end
+		local pointed_thing = {type = "nothing"}
+		thread.droid.is_player_currently = true
+		wielditem_def.on_secondary_use(wielditem, thread.droid, pointed_thing)
+		thread.droid.is_player_currently = false
+		return true
+	end,
+
+	drop = function(params, thread)
+		local wielditem = thread.droid:get_wielded_item()
+		local wielditem_def = minetest.registered_items[wielditem:get_name()]
+		if not (wielditem_def and wielditem_def.on_drop) then
+			return true
+		end
+		thread.droid.is_player_currently = true
+		wielditem_def.on_drop(wielditem, thread.droid, thread.droid:get_pos())
+		thread.droid.is_player_currently = false
+		return true
 	end,
 
 	select_item = function(params, thread)
@@ -383,6 +478,15 @@ local maidroid_instruction_set = {
 		return true, {chat_last_sayer, chat_last_message}
 	end,
 }
+
+-- some aliases
+maidroid_instruction_set.getpos = maidroid_instruction_set.get_pos
+maidroid_instruction_set.getvelocity = maidroid_instruction_set.get_velocity
+maidroid_instruction_set.getacceleration  = maidroid_instruction_set.get_acceleration
+maidroid_instruction_set.getyaw  = maidroid_instruction_set.get_yaw
+maidroid_instruction_set.setyaw  = maidroid_instruction_set.set_yaw
+maidroid_instruction_set.punch = maidroid_instruction_set.use
+maidroid_instruction_set.rightclick = maidroid_instruction_set.place
 
 
 local function mylog(log)
