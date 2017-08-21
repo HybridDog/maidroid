@@ -264,7 +264,7 @@ local maidroid_instruction_set = {
 			end
 		end
 		if not dp_result then
-			return true, false, "insufficient tool capabilities"
+			return true, {false, "insufficient tool capabilities"}
 		end
 
 		thread.droid.is_player_currently = true
@@ -292,7 +292,7 @@ local maidroid_instruction_set = {
 		usleep(dp_result.time * 1000000, thread)
 		update_animation(thread.droid)
 
-		return true, true, dp_result.time
+		return true, {true, dp_result.time}
 	end,
 
 	place = function(params, thread)
@@ -307,19 +307,19 @@ local maidroid_instruction_set = {
 		local def = minetest.registered_nodes[node.name]
 		if not def
 		or not def.buildable_to then
-			return true, false, "node not buildable_to"
+			return true, {false, "node not buildable_to"}
 		end
 
 		-- get wield item
 		local stack = thread.droid:get_wielded_item()
 		if stack:is_empty() then
-			return true, false, "missing item"
+			return true, {false, "missing item"}
 		end
 
 		-- get pt.under
 		local under = get_pt_under(pos)
 		if not under then
-			return true, false, "no node to place onto found"
+			return true, {false, "no node to place onto found"}
 		end
 
 		-- place it
@@ -331,7 +331,7 @@ local maidroid_instruction_set = {
 		local stack_def = stack:get_definition()
 		local newitem, succ = stack_def.on_place(stack, thread.droid.object, pt)
 		if not succ then
-			return true, false, "could not place"
+			return true, {false, "could not place"}
 		end
 
 		-- play the place sound
@@ -367,8 +367,15 @@ local maidroid_instruction_set = {
 		return true
 	end,
 
-	beep = function(_, thread)
-		minetest.sound_play("maidroid_beep", {pos = thread.droid.object:getpos()})
+	beep = function(params, thread)
+		local f = params[1]
+		f = type(f) == "number" and f > 0 and f or 2000
+		local p = f/2000 -- 2000 Hz is the frequency of maidroid_beep.ogg.
+		p = math.min(math.max(p, 0.1), 2)
+		minetest.sound_play("maidroid_beep", {
+			pos = thread.droid.object:getpos(),
+			pitch = p,
+		})
 		return true
 	end,
 

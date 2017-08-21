@@ -17,7 +17,7 @@ local instr = {
 	{"dig", "<s posname>[, <v errormsg>]", "Digs a node, if posname is a variable, it is set to a bool indicating whether digging succeeded. If false, errormsg tells the reason."},
 	{"place", "<s posname>[, <v errormsg>]", "Places a node, if posname is a variable, it is set to a bool indicating whether placing succeeded. If false, errormsg tells the reason."},
 	{"select_item", "<index>", "Swaps the currently wielded item with the item at place <index> in the main inventory."},
-	{"beep", "", "Execute this every second while the droid walks backwards, pls."},
+	{"beep", "[<n frequency>]", "Execute this every second while the droid walks backwards, pls. frequency shall be given in Hz, its default value is 2000."},
 	{"listen_chat", "<v sayer>, <v message>", "Get the last thing that was written from a player into chat and the player's name."},
 }
 
