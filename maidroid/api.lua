@@ -73,6 +73,16 @@ function maidroid.maidroid.get_pos(self)
 	return self.object:get_pos()
 end
 
+-- for the case, the luaentity is used as player
+function maidroid.maidroid.get_player_control(self)
+	return {jump=false,right=false,left=false,LMB=false,RMB=false,
+		sneak=false,aux1=false,down=false,up=false}
+end
+
+function maidroid.maidroid.get_player_control_bits(self)
+	return 0
+end
+
 -- maidroid.maidroid.get_core_name returns a name of a maidroid's current core.
 function maidroid.maidroid.get_core_name(self)
 	local inv = self:get_inventory()
@@ -636,11 +646,14 @@ function maidroid.register_maidroid(product_name, def)
 		get_inventory                = maidroid.maidroid.get_inventory,
 		get_pos                      = maidroid.maidroid.get_pos,
 		getpos                       = maidroid.maidroid.get_pos,
+		get_player_control           = maidroid.maidroid.get_player_control,
+		get_player_control_bits      = maidroid.maidroid.get_player_control_bits,
 		get_core                     = maidroid.maidroid.get_core,
 		get_core_name                = maidroid.maidroid.get_core_name,
 		get_nearest_player           = maidroid.maidroid.get_nearest_player,
 		get_front                    = maidroid.maidroid.get_front,
 		get_front_node               = maidroid.maidroid.get_front_node,
+		get_look_dir                 = maidroid.maidroid.get_look_direction,
 		get_look_direction           = maidroid.maidroid.get_look_direction,
 		set_animation                = maidroid.maidroid.set_animation,
 		set_yaw_by_direction         = maidroid.maidroid.set_yaw_by_direction,

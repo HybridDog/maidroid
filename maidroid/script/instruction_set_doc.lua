@@ -19,7 +19,7 @@ local instr = {
 	{"rightclick", "<s posname>[, <v errormsg>]", "Calls object's or node's on_rightclick. Can instead place one node nearer to droid if no on_rightclick in node definition."},
 	{"use", "[<s posname> | <n object_id>]", "Calls wielded item's on_use. If no on_use, punches."},
 	{"punch", "[<s posname> | <n object_id>]", "Same as use."},
-	{"secondary_use", "[<s posname> | <n object_id>]", "Calls wielded item's on_use. If no on_use, punches."},
+	{"secondary_use", "", "Calls wielded item's on_secondary_use.."},
 	{"drop", "[<n count>]", "Calls wielditem's on_drop"},
 
 	{"select_item", "<index>", "Swaps the currently wielded item with the item at place <index> in the main inventory."},

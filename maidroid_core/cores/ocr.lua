@@ -454,6 +454,8 @@ local maidroid_instruction_set = {
 		thread.droid.is_player_currently = true
 		if wielditem_def and wielditem_def.on_use then
 			wielditem = wielditem_def.on_use(wielditem, thread.droid, pointed_thing)
+					or wielditem -- it could return nil
+			wielditem = ItemStack(wielditem)
 			thread.droid:set_wielded_item(wielditem)
 		elseif pos then
 			local node = minetest.get_node(pos)
@@ -489,14 +491,15 @@ local maidroid_instruction_set = {
 			return true
 		end
 		local count = params[1]
-		if count and type(count) == "number" and not count <= 0 then
+		if count and type(count) == "number" and not (count <= 0) then
 			wielditem:set_count(math.min(count, wielditem:get_count()))
 		end
 		local pos = thread.droid:get_pos()
 		thread.droid.is_player_currently = true
+		local inv = thread.droid:get_inventory()
+		inv:remove_item("wield_item", wielditem)
 		wielditem = wielditem_def.on_drop(wielditem, thread.droid, pos)
 		wielditem = ItemStack(wielditem)
-		local inv = thread.droid:get_inventory()
 		wielditem = inv:add_item("wield_item", wielditem)
 		if not wielditem:is_empty() then
 			wielditem = inv:add_item("main", wielditem)
