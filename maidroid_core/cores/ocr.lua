@@ -96,6 +96,7 @@ end)
 
 local maidroid_instruction_set = {
 	-- popular (similars in lua_api) information gathering functions
+  
 	get_pos = function(params, thread)
 		return table_tovars(params[1], thread.droid.object:get_pos(),
 			thread.vars)
