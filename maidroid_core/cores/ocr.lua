@@ -96,7 +96,7 @@ end)
 
 local maidroid_instruction_set = {
 	-- popular (similars in lua_api) information gathering functions
-  
+
 	get_pos = function(params, thread)
 		return table_tovars(params[1], thread.droid.object:get_pos(),
 			thread.vars)
@@ -434,7 +434,7 @@ local maidroid_instruction_set = {
 		return true, {false, "no on_rightclick"}
 	end,
 
-	use = function(params, thread)
+	leftclick = function(params, thread)
 		local wielditem = thread.droid:get_wielded_item()
 		local wielditem_def = minetest.registered_items[wielditem:get_name()]
 		local pointed_thing = {}
@@ -551,7 +551,8 @@ maidroid_instruction_set.getvelocity = maidroid_instruction_set.get_velocity
 maidroid_instruction_set.getacceleration  = maidroid_instruction_set.get_acceleration
 maidroid_instruction_set.getyaw  = maidroid_instruction_set.get_yaw
 maidroid_instruction_set.setyaw  = maidroid_instruction_set.set_yaw
-maidroid_instruction_set.punch = maidroid_instruction_set.use
+maidroid_instruction_set.punch = maidroid_instruction_set.leftclick
+maidroid_instruction_set.use = maidroid_instruction_set.leftclick
 
 
 local function mylog(log)
