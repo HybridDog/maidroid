@@ -492,7 +492,7 @@ local maidroid_instruction_set = {
 			return true
 		end
 		local count = params[1]
-		if count and type(count) == "number" and not (count <= 0) then
+		if count and type(count) == "number" and count > 0 then
 			wielditem:set_count(math.min(count, wielditem:get_count()))
 		end
 		local pos = thread.droid:get_pos()
