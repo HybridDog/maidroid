@@ -282,7 +282,7 @@ local maidroid_instruction_set = {
 			or 14
 		local used_tool
 		for i = 1,#dp_pool do
-			-- fix, see game.cpp:3888
+			-- fix, see game.cpp:3888 TODO
 			dp_pool[i].time = math.max(dp_pool[i].time, 0.15)
 		end
 		for i = 1,#dp_pool do
